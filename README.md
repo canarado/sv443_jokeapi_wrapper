@@ -4,7 +4,7 @@
 use sv443_jokeapi::{JokeAPI, JokeAPIEnums::*};
 
 fn main() {
-    let mut builder: JokeAPI = JokeAPI::new();
+    let mut builder: JokeAPI = JokeAPI::builder();
     builder
     .category(Category::Dark)
     .flag(Flag::Nsfw)
@@ -22,7 +22,7 @@ As of right now, usage of this crate is looking something more like this
 use sv443_jokeapi::{JokeAPI, JokeAPIEnums::*};
 
 fn main {
-    let mut builder: JokeAPI = JokeAPI::new();
+    let mut builder: JokeAPI = JokeAPI::builder();
 
     builder.category(Category::Dark).expect("Some String value") // i am not expecting to return a Result<> forever, just temporarily for testing
 
