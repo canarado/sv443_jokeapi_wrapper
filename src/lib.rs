@@ -1,7 +1,4 @@
 #![allow(dead_code, unreachable_patterns, non_snake_case, non_camel_case_types, unused_imports)]
-// #![allow(unreachable_patterns)]
-// #![allow(non_snake_case)]
-// #![allow(non_camel_case_types)]
 
 #[macro_use]
 extern crate serde;
@@ -9,6 +6,7 @@ extern crate reqwest;
 use serde::{Serialize, Deserialize};
 use reqwest::Error;
 use reqwest::Response;
+use std::io::Read;
 use std::vec::Vec;
 pub mod enums;
 use enums::*;
@@ -190,11 +188,33 @@ impl JokeAPI {
         Ok("Client built".to_string())
     }
 
-    fn get(&mut self) -> Result<Response, Error> {
-        let mut response = reqwest::get(&self.API_URL)?;
+    fn get(&mut self) -> String {
+        let mut response = reqwest::get(&self.API_URL).unwrap();
 
-        Ok(response)
+        assert!(response.status().is_success());
+
+        let mut content = String::new();
+        response.read_to_string(&mut content);
+        content
     }
+}
+
+fn create_api_builder() {
+    // let mut b: JokeAPI = JokeAPI::builder();
+
+    // b.category(Category::Dark).expect("could not add political category to builder");
+
+    // b.build().expect("not much");
+
+    // let mut result = b.get();
+
+    // println!("{:?}", result.status().is_ok())
+    let mut resp = reqwest::get("https://www.rust-lang.org").unwrap();
+    assert!(resp.status().is_success());
+
+    let mut content = String::new();
+    resp.read_to_string(&mut content);
+    println!("{:?}", content)
 }
 
 #[cfg(test)]
@@ -254,14 +274,16 @@ mod tests {
         let mut api_builder: JokeAPI = JokeAPI::builder();
         api_builder.category(Category::Programming).expect("F");
 
-        api_builder.build();
-        let typestr = api_builder.get();
+        api_builder.build().expect("Fuck");
+        let content = api_builder.get();
         
-        match typestr {
-            Ok(v) => println!("{:?}", v),
-            Err(e) => println!("{}", e)
-        }
+        println!("{:?}", content);
 
         assert_eq!(api_builder.categories[0], "Programming");
     }
+
+    // #[test]
+    // fn building() {
+    //     create_api_builder();
+    // }
 }
