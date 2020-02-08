@@ -8,8 +8,8 @@ use reqwest::Error;
 use reqwest::Response;
 use std::io::Read;
 use std::vec::Vec;
-pub mod enums;
-use enums::*;
+pub mod JokeAPIEnums;
+use JokeAPIEnums::*;
 use std::any::type_name;
 
 fn type_of<T>(_: T) -> &'static str {
