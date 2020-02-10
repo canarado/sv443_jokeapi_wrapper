@@ -1,16 +1,14 @@
 #![allow(dead_code, unreachable_patterns, non_snake_case, non_camel_case_types, unused_imports)]
 
-#[macro_use]
-extern crate serde;
-extern crate reqwest;
-use serde::{Serialize, Deserialize};
+// extern crate reqwest;
 use reqwest::Error;
 use reqwest::Response;
 use std::io::Read;
 use std::vec::Vec;
-pub mod JokeAPIEnums;
-use JokeAPIEnums::*;
+pub mod constants;
+use constants::*;
 use std::any::type_name;
+use serde_json::Value;
 
 fn type_of<T>(_: T) -> &'static str {
     type_name::<T>()
@@ -38,104 +36,94 @@ impl JokeAPI {
         }
     }
 
-    fn category(&mut self, category: Category) -> Result<(), String> {
+    fn category(&mut self, category: Category) -> &mut Self {
         match category {
             Category::Any => {
                 self.categories.push("Any".to_string());
-                Ok(())
+                self
             },
             Category::Miscellaneous => {
                 self.categories.push("Miscellaneous".to_string());
-                Ok(())
+                self
             },
             Category::Programming => {
                 self.categories.push("Programming".to_string());
-                Ok(())
+                self
             },
             Category::Dark => {
                 self.categories.push("Dark".to_string());
-                Ok(())
-            },
-            _ => {
-                Err("No category found".to_string())
+                self
             }
         }
     }
 
-    fn flag(&mut self, flag_: Flag) -> Result<(), String> {
+    fn flag(&mut self, flag_: Flag) -> &mut Self {
         match flag_ {
             Flag::Nsfw => {
                 self.flags.push("nsfw".to_string());
-                Ok(())
+                self
             },
             Flag::Religious => {
                 self.flags.push("religious".to_string());
-                Ok(())
+                self
             },
             Flag::Political => {
                 self.flags.push("political".to_string());
-                Ok(())
+                self
             },
             Flag::Racist => {
                 self.flags.push("racist".to_string());
-                Ok(())
+                self
             },
             Flag::Sexist => {
                 self.flags.push("sexist".to_string());
-                Ok(())
-            },
-            _ => {
-                Err("No flag found".to_string())
+                self
             }
         }
     }
 
-    fn format(&mut self, fmt: Format) -> Result<(), String> {
+    fn format(&mut self, fmt: Format) -> &mut Self {
         match fmt {
             Format::json => {
                 self.formats = "json".to_string();
-                Ok(())
+                self
             },
             Format::xml => {
                 self.formats = "xml".to_string();
-                Ok(())
+                self
             },
             Format::yaml => {
                 self.formats = "yaml".to_string();
-                Ok(())
-            },
-            _ => {
-                Err("No format found".to_string())
+                self
             }
         }
     }
 
-    fn joke_type(&mut self, type_: Type) -> Result<(), String> {
+    fn joke_type(&mut self, type_: Type) -> &mut Self {
         match type_ {
             Type::Single => {
                 self.types = "single".to_string();
-                Ok(())
+                self
             },
             Type::Twopart => {
                 self.types = "single".to_string();
-                Ok(())
-            },
-            _ => {
-                Err("No joke type found".to_string())
+                self
             }
         }
     }
 
-    fn reset(&mut self) {
+    fn reset(&mut self) -> &mut Self {
         self.API_URL = String::from("https://sv443.net/jokeapi/v2/joke/");
         self.categories = Vec::new();
         self.flags = Vec::new();
         self.formats = String::new();
         self.types = String::new();
         self.built = false;
+
+        self
     }
 
-    fn build(&mut self) -> Result<String, ()> {
+    fn build(&mut self) -> &mut Self {
 
         let mut extension_string = String::new();
 
@@ -172,7 +160,7 @@ impl JokeAPI {
         }
 
         // handle format
-        if self.formats.chars().count() > 0 {
+        if self.formats.chars().count() > 0 && self.formats != "json".to_string() {
             let formatstring = format!("{}{}{}", "format=", self.formats, "&");
             extension_string.push_str(&formatstring);
         }
@@ -185,46 +173,26 @@ impl JokeAPI {
 
         self.API_URL.push_str(&extension_string);
         self.built = true;
-        Ok("Client built".to_string())
+        self
     }
 
-    fn get(&mut self) -> String {
+    fn get(&mut self) -> Value {
         let mut response = reqwest::get(&self.API_URL).unwrap();
 
         assert!(response.status().is_success());
 
         let mut content = String::new();
-        response.read_to_string(&mut content);
-        content
+        response.read_to_string(&mut content).expect("Couldn't read response data to string");
+
+        let json_data: Value = serde_json::from_str(&content).unwrap();
+
+        json_data
     }
-}
-
-fn create_api_builder() {
-    // let mut b: JokeAPI = JokeAPI::builder();
-
-    // b.category(Category::Dark).expect("could not add political category to builder");
-
-    // b.build().expect("not much");
-
-    // let mut result = b.get();
-
-    // println!("{:?}", result.status().is_ok())
-    let mut resp = reqwest::get("https://www.rust-lang.org").unwrap();
-    assert!(resp.status().is_success());
-
-    let mut content = String::new();
-    resp.read_to_string(&mut content);
-    println!("{:?}", content)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn check_enum_defs() {
-        assert_eq!(Category::Dark, Category::Dark)
-    }
 
     #[test]
     fn create_builder_check() {
@@ -236,7 +204,7 @@ mod tests {
     #[test]
     fn builder_addtofields_check() {
         let mut api_builder: JokeAPI = JokeAPI::builder();
-        api_builder.category(Category::Dark).expect("Whoopsies!");
+        api_builder.category(Category::Dark);
 
         assert_eq!(api_builder.categories[0], "Dark".to_string())
     }
@@ -245,11 +213,11 @@ mod tests {
     fn builder_method_check() {
         let mut api_builder: JokeAPI = JokeAPI::builder();
 
-        api_builder.category(Category::Programming).expect("Yeet!");
-        api_builder.flag(Flag::Nsfw).expect("Yeet!");
-        api_builder.format(Format::yaml).expect("Yeet!");
-        api_builder.joke_type(Type::Single).expect("Yeet!");
-        api_builder.build().expect("Fuck");
+        api_builder.category(Category::Programming);
+        api_builder.flag(Flag::Nsfw);
+        api_builder.format(Format::yaml);
+        api_builder.joke_type(Type::Single);
+        api_builder.build();
 
         assert_eq!(api_builder.categories[0], "Programming");
         assert_eq!(api_builder.flags[0], "nsfw");
@@ -261,7 +229,7 @@ mod tests {
     #[test]
     fn builder_reset_check() {
         let mut api_builder: JokeAPI = JokeAPI::builder();
-        api_builder.category(Category::Programming).expect("F");
+        api_builder.category(Category::Programming);
         api_builder.reset();
 
         let test_eq_builder: JokeAPI = JokeAPI::builder();
@@ -272,9 +240,9 @@ mod tests {
     #[test]
     fn build_get_test() {
         let mut api_builder: JokeAPI = JokeAPI::builder();
-        api_builder.category(Category::Programming).expect("F");
+        api_builder.category(Category::Programming);
 
-        api_builder.build().expect("Fuck");
+        api_builder.build();
         let content = api_builder.get();
         
         println!("{:?}", content);
@@ -282,8 +250,22 @@ mod tests {
         assert_eq!(api_builder.categories[0], "Programming");
     }
 
-    // #[test]
-    // fn building() {
-    //     create_api_builder();
-    // }
+    #[test]
+    fn chainability() {
+        let mut api_builder: JokeAPI = JokeAPI::builder();
+
+        api_builder
+        .category(Category::Dark)
+        .flag(Flag::Nsfw)
+        .format(Format::yaml)
+        .joke_type(Type::Single);
+
+        api_builder.build();
+
+        let content = api_builder.get();
+
+        // assert_eq!(content["flags"]["nsfw"], false);
+        
+        assert_eq!(api_builder.API_URL, "https://sv443.net/jokeapi/v2/joke/Dark?blacklistFlags=nsfw&format=yaml&type=single".to_string())
+    }
 }
