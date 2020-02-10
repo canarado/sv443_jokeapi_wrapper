@@ -1,6 +1,6 @@
 # sv443_jokeapi Rust Crate
 
-cargo: `0.1.0`
+cargo: `0.1.1`
 
 ## Easy to use crate to interact with the sv443 Joke API
 [Located here](https://sv443.net/jokeapi/v2)
