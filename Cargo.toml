@@ -10,7 +10,7 @@ exclude = [
     "**/*.rs.bk",
     "Cargo.lock"
 ]
-
+license = "MIT"
 
 [dependencies]
 reqwest = "0.6.0"
