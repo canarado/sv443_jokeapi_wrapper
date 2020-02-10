@@ -35,7 +35,7 @@ fn main() {
     // as of right now is broken.
 
     // JokeAPI#get returns a serde_json Value struct
-    let data: Value = builder.get();
+    let data = builder.get();
 
     // we expect `The Joke's category is "Programming"` to be printed.
     // for more information on format of the data that should be recieved,
