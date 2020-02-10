@@ -1,6 +1,6 @@
 [package]
 name = "sv443_jokeapi"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Adam Kerik <dev.canarado@gmail.com>"]
 edition = "2018"
 description = "Simple package that makes interaction with the sv443 jokeapi in Rust a little easier."
@@ -8,7 +8,8 @@ repository = "https://github.com/canarado/sv443_jokeapi_wrapper"
 exclude = [
     "/target",
     "**/*.rs.bk",
-    "Cargo.lock"
+    "Cargo.lock",
+    "/example"
 ]
 license = "MIT"
 

@@ -36,7 +36,7 @@ impl JokeAPI {
         }
     }
 
-    fn category(&mut self, category: Category) -> &mut Self {
+    pub fn category(&mut self, category: Category) -> &mut Self {
         match category {
             Category::Any => {
                 self.categories.push("Any".to_string());
@@ -57,7 +57,7 @@ impl JokeAPI {
         }
     }
 
-    fn flag(&mut self, flag_: Flag) -> &mut Self {
+    pub fn flag(&mut self, flag_: Flag) -> &mut Self {
         match flag_ {
             Flag::Nsfw => {
                 self.flags.push("nsfw".to_string());
@@ -82,7 +82,7 @@ impl JokeAPI {
         }
     }
 
-    fn format(&mut self, fmt: Format) -> &mut Self {
+    pub fn format(&mut self, fmt: Format) -> &mut Self {
         match fmt {
             Format::json => {
                 self.formats = "json".to_string();
@@ -99,7 +99,7 @@ impl JokeAPI {
         }
     }
 
-    fn joke_type(&mut self, type_: Type) -> &mut Self {
+    pub fn joke_type(&mut self, type_: Type) -> &mut Self {
         match type_ {
             Type::Single => {
                 self.types = "single".to_string();
@@ -112,7 +112,7 @@ impl JokeAPI {
         }
     }
 
-    fn reset(&mut self) -> &mut Self {
+    pub fn reset(&mut self) -> &mut Self {
         self.API_URL = String::from("https://sv443.net/jokeapi/v2/joke/");
         self.categories = Vec::new();
         self.flags = Vec::new();
@@ -123,7 +123,7 @@ impl JokeAPI {
         self
     }
 
-    fn build(&mut self) -> &mut Self {
+    pub fn build(&mut self) -> &mut Self {
 
         let mut extension_string = String::new();
 
@@ -176,7 +176,7 @@ impl JokeAPI {
         self
     }
 
-    fn get(&mut self) -> Value {
+    pub fn get(&mut self) -> Value {
         let mut response = reqwest::get(&self.API_URL).unwrap();
 
         assert!(response.status().is_success());
