@@ -261,10 +261,6 @@ mod tests {
         .joke_type(Type::Single);
 
         api_builder.build();
-
-        let content = api_builder.get();
-
-        // assert_eq!(content["flags"]["nsfw"], false);
         
         assert_eq!(api_builder.API_URL, "https://sv443.net/jokeapi/v2/joke/Dark?blacklistFlags=nsfw&format=yaml&type=single".to_string())
     }
