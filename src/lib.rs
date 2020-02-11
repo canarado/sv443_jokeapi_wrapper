@@ -1,6 +1,5 @@
 #![allow(dead_code, unreachable_patterns, non_snake_case, non_camel_case_types, unused_imports)]
 
-// extern crate reqwest;
 use reqwest::Error;
 use reqwest::Response;
 use std::io::Read;
@@ -8,7 +7,26 @@ use std::vec::Vec;
 pub mod constants;
 use constants::*;
 use std::any::type_name;
-use serde_json::Value;
+use serde_json;
+// use yaml_rust::{YamlLoader, Yaml, YamlEmitter};
+use serde_yaml;
+
+#[derive(Debug, PartialEq)]
+pub enum JokeResult {
+    json(serde_json::Value),
+    yaml(serde_yaml::Value),
+    Err(String)
+}
+
+// impl JokeResult<T> {
+//     pub fn get_json(&self, _: T) -> T {
+//         match self {
+//             crate::JokeResult::json(R) => R,
+//             crate::JokeResult::yaml(R) => R,
+//             crate::JokeResult::Err(E) => E
+//         }
+//     }
+// }
 
 fn type_of<T>(_: T) -> &'static str {
     type_name::<T>()
@@ -147,9 +165,6 @@ impl JokeAPI {
         match self.flags.len() {
             0 => (),
             1 => {
-                // extension_string.push_str("blacklistFlags=");
-                // extension_string.push_str(&self.flags[0]);
-                // extension_string.push_str("?");
                 let flagstring = format!("{}{}{}", "blacklistFlags=", self.flags[0], "&");
                 extension_string.push_str(&flagstring);
             },
@@ -176,7 +191,7 @@ impl JokeAPI {
         self
     }
 
-    pub fn get(&mut self) -> Value {
+    pub fn get(&mut self) -> JokeResult {
         let mut response = reqwest::get(&self.API_URL).unwrap();
 
         assert!(response.status().is_success());
@@ -184,9 +199,39 @@ impl JokeAPI {
         let mut content = String::new();
         response.read_to_string(&mut content).expect("Couldn't read response data to string");
 
-        let json_data: Value = serde_json::from_str(&content).unwrap();
+        match self.formats.as_str() {
+            "json" => {
+                let json_data: serde_json::Value = serde_json::from_str(&content).unwrap();
 
-        json_data
+                JokeResult::json(json_data)
+            },
+            "yaml" => {
+                // let mut yaml_data = YamlLoader::load_from_str(&content).unwrap();
+                // let yaml_data_ = &yaml_data[0];
+
+                // // let mut writer = String::new();
+                // // {
+                // //     let mut emitter = YamlEmitter::new(&mut writer);
+                // //     emitter.dump(&yaml_data).unwrap();
+                // // }
+                let yaml_data: serde_yaml::Value = serde_yaml::from_str(&content).unwrap();
+
+                JokeResult::yaml(yaml_data)
+            },
+            "xml" => {
+                JokeResult::Err("xml is currently not able to be used, as said in the documentation, please use yaml or json(default) formats".to_string())
+            },
+            _ => {
+                JokeResult::Err("No format found".to_string())
+            }
+        }
+
+        // let mut content = String::new();
+        // response.read_to_string(&mut content).expect("Couldn't read response data to string");
+
+        // let json_data: Value = serde_json::from_str(&content).unwrap();
+
+        // json_data
     }
 }
 
@@ -263,5 +308,62 @@ mod tests {
         api_builder.build();
         
         assert_eq!(api_builder.API_URL, "https://sv443.net/jokeapi/v2/joke/Dark?blacklistFlags=nsfw&format=yaml&type=single".to_string())
+    }
+
+    #[test]
+    fn test_formatting() {
+        let mut builder: JokeAPI = JokeAPI::builder();
+
+        builder.category(Category::Dark).format(Format::yaml);
+
+        builder.build();
+
+        let data = builder.get();
+
+        match data {
+            JokeResult::json(D) => {
+                println!("{:?}", D)
+            },
+            JokeResult::yaml(T) => {
+                let f = &T["category"];
+
+                println!("The category is {}!", f.as_str().unwrap())
+            },
+            JokeResult::Err(E) => {
+                println!("{:?}", E)
+            },
+            _ => {
+                println!("Whoops!")
+            }
+        }
+    }
+
+    #[test]
+    fn get_json() {
+        let mut builder: JokeAPI = JokeAPI::builder();
+
+        builder
+        .category(Category::Dark)
+        .format(Format::json)
+        .build();
+
+        let data = builder.get();
+
+        match data {
+            JokeResult::json(D) => {
+                println!("The category is {}!", D["category"])
+            },
+            JokeResult::yaml(T) => {
+                let f = &T["category"];
+
+                println!("The category is {}!", f.as_str().unwrap())
+            },
+            JokeResult::Err(E) => {
+                println!("{:?}", E)
+            },
+            _ => {
+                println!("Whoops!")
+            }
+        }
     }
 }
