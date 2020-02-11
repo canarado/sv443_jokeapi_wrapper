@@ -17,7 +17,7 @@ fn main() {
             // the console, you can use this to see the Value.
             println("{:?}", J);
 
-            // We can index into J and print without explicitly 
+            // We can index into J directly in the println macro
             println!("The joke is nsfw? {}!", J["flags"]["nsfw"]);
 
             // We can get data from the response like this, by
